@@ -1,16 +1,16 @@
-// // const socket = io();
-// const socket = io("https://v-call-nb7m.onrender.com", {
-//   transports: ["polling", "websocket"], // allow fallback
-//   withCredentials: true, // only if your server uses credentials
-//   path: "/socket.io", // optional unless custom path
-// });
-// // If still not connected after 5 seconds, show an error or retry
-// setTimeout(() => {
-//   if (!socket.connected) {
-//     console.error("Failed to connect to WebSocket after 5 seconds.");
-//     // Optionally show a message to the user
-//   }
-// }, 5000);
+// const socket = io();
+const socket = io("https://v-call-nb7m.onrender.com", {
+  transports: ["polling", "websocket"], // allow fallback
+  withCredentials: true, // only if your server uses credentials
+  path: "/socket.io", // optional unless custom path
+});
+// If still not connected after 5 seconds, show an error or retry
+setTimeout(() => {
+  if (!socket.connected) {
+    console.error("Failed to connect to WebSocket after 5 seconds.");
+    // Optionally show a message to the user
+  }
+}, 5000);
 
 
 
