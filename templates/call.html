@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E Walkie Talkie - Room</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Inconsolata:wght@500&family=Inter:wght@500&family=Orbitron:wght@600&display=swap" rel="stylesheet">
+    <style>
+        * {
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --dark-bg: #000000;
+            --card-bg: #1A1A2E;
+            --card-border: #8E44AD;
+            --header-gradient-start: #8E44AD;
+            --header-gradient-end: #C0392B;
+            --text-primary: #FFFFFF;
+            --text-accent: #FF5722;
+            --audio-meter: #2ECC71;
+            --control-gradient-start: #9B59B6;
+            --control-gradient-end: #8E44AD;
+            --avatar-bg: #f3eb0f;
+            --audio-track: #2E2E3F;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            background-image: url("{{ url_for('static', filename='img/bgn.svg') }}");
+            background-position: center bottom; /* ✅ Centered horizontally */
+            background-repeat: no-repeat;
+            background-size:130vh auto; /* Or use cover/contain as needed */
+            
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            display: flex;
+            justify-content: space-around;
+            flex-direction: column;
+        }
+
+        /* Background Glows */
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            width: 50vw;
+            height: 50vh;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: -1;
+        }
+
+        body::before {
+            background: rgba(30, 30, 50, 0.7);
+            left: -25vw;
+            top: -25vh;
+        }
+
+        body::after {
+            background: rgba(80, 30, 60, 0.6);
+            right: -25vw;
+            top: -25vh;
+        }
+
+        /* .bg{
+            background-image: url("../img/bg.jpg");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        } */
+
+
+        /* Particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+        }
+
+        /* Illustration */ 
+        .illustration {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-height: 50vh;
+            object-fit: contain;
+            z-index: -1;
+        }
+
+        /* Header */
+        .header {
+            position: absolute;
+            top: 50px;
+            left: 50px;
+
+        }
+
+        .logo {
+            font-family: 'Audiowide', cursive;
+            font-weight: 400;
+            font-size: 34px;
+            margin-bottom: 32px;
+
+        }
+
+        .room-id {
+            font-family: 'Inconsolata', monospace;
+            font-weight: 500;
+            font-size: 22px;
+            color: var(--text-accent);
+        }
+
+        /* Controls */
+        .controls {
+            position: absolute;
+            top: 50px;
+            right: 50px;
+            display: flex;
+            gap: 16px;
+        }
+
+        .control-btn {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--text-primary);
+        }
+
+        /* Participant Cards */
+        .participants-container {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-bottom: 10px;
+            margin-top: 100px;
+        }
+
+        .participant-card {
+            background: linear-gradient(135deg, #7C3AED, #EC4899);
+            border-radius: 16px;
+            padding: 3px;               /* thickness of the gradient border */
+            display: inline-block;
+            margin : 0 20px
+        }   
+
+        /* inner card */
+        .participant-card .card-inner {
+        background-color: #1F1F2E;
+        border-radius: 14px;
+        overflow: hidden;
+        width: 500px;
+        color: #FFF;
+        font-family: sans-serif;
+        }
+
+        /* header */
+        .participant-card .card-header {
+        background: linear-gradient(135deg, #7C3AED, #EC4899);
+        padding: 8px 16px;
+        font-weight: 600;
+        font-size: 16px;
+        }
+
+        /* content area */
+        .participant-card .card-content {
+        padding: 10px;
+        background-color: #1F1F2E;
+
+        }
+
+        .participant-card .l1 {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+        }
+
+        .participant-card .avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        overflow: hidden;
+        margin-right: 12px;
+        background-color: var(--avatar-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        }
+
+        .participant-card .avatar img {
+            margin-top: 10px;
+        width: 120%;
+        height: auto;
+        display: block;
+        }
+
+        .participant-card .name {
+        font-size: 16px;
+        font-weight: 500;
+        }
+
+        /* audio meter */
+        .participant-card .audio-meter {
+        width: 100%;
+        height: 8px;
+        background-color: #374151;
+        border-radius: 4px;
+        overflow: hidden;
+        }
+        .participant-card .audio-level {
+        height: 100%;
+        background-color: #10B981;
+        border-radius: 4px 0 0 4px;
+        width: 70%; /* or controlled dynamically via JS */
+        transition: width 0.1s ease-out;
+        }
+
+.voice-control img.mic-icon {
+    width: 100px;
+    height: 100px;
+    pointer-events: none;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5)); /* X, Y, blur, color */
+}
+
+            /* Voice Control */
+        .voice-control {
+            color: transparent;
+            background-color: transparent;
+            position: fixed;
+            bottom: 50px;
+            left: 49%;
+            transform: translateX(-50%) ;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: none;
+            /* background: linear-gradient(to bottom, var(--control-gradient-start), var(--control-gradient-end));
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4); */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        
+
+        .voice-control:hover {
+            transform: translateX(-50%) scale(1.05);
+        }
+
+        .voice-control:active {
+            transform: translateX(-50%) scale(0.95) ;
+            /* background-color: rgba(24, 247, 24, 0.601);
+            border: 2px solid lime; */
+        } 
+
+        .voice-control.active .mic-icon {
+            filter:
+                drop-shadow(0 0 6px #00ff0084);
+        }
+
+
+        .status-cnt {
+            display: flex;
+            justify-content: center; /* Horizontally centers the inner div */
+        }
+
+        #status {
+            text-align: center; /* Centers the icon and text inside the div */
+        }
+
+        /* Responsive */
+        @media (max-width: 1439px) {
+            .participant-card {
+                width: 340px;
+            }
+
+            .participant-card .card-inner {
+                width: 339px;
+            }
+
+            .voice-control {
+                width: 200px;
+                height: 200px;
+                bottom: 20px;
+            }
+
+        }
+
+        @media (max-width: 1023px) {
+
+            body {
+                background-image: url("{{ url_for('static', filename='img/ph-bg.svg') }}");         /* Remove background image */
+                background-color: var(--dark-bg); /* Optional: ensure dark background still shows */
+                background-size: cover;   /* fills entire area, may crop */
+                background-size: contain;              
+            }
+            
+
+            .controls{
+                margin-top: 15%;
+            }
+
+            .header {
+                font-size: 1.9rem;
+            }
+
+            .header .room-id {
+                font-size: 1.5rem;
+                font-weight: 500;
+            }
+
+            .participants-container {
+                margin-top: 190px;
+                flex-direction: column;
+                align-items: center;
+                gap: 24px;
+            }
+            .voice-control {
+                width: 200px;
+                height: 200px;
+                bottom: 50px;
+            }
+
+
+            .voice-control .mic-icon {
+                width: 200px;
+                height: 200px;
+                transition: filter 0.3s ease;
+            }
+
+            .voice-control:active .mic-icon {
+                filter:
+                    drop-shadow(0 0 6px #00ff00)
+                    drop-shadow(0 0 12px #00e5ff)
+                    drop-shadow(0 0 18px #ff00ff);
+            }
+
+            .participant-card {
+                margin-top: 20px;
+            width: 300px;
+
+            }
+            .participant-card .card-inner {
+            background-color: #1F1F2E;
+            border-radius: 14px;
+            overflow: hidden;
+            width: 300px;
+            color: #FFF;
+            font-family: sans-serif;
+            }
+
+
+
+        }
+
+
+         @media (max-width: 769px) {
+
+            body {
+                background-image: url("{{ url_for('static', filename='img/ph-bg.svg') }}");         /* Remove background image */
+                background-color: var(--dark-bg); /* Optional: ensure dark background still shows */
+                background-size: cover;   /* fills entire area, may crop */
+                /* background-size: contain;               */
+                background-position: center calc(100% - -150px);
+
+            }
+
+            .controls{
+                margin-top: 8%;
+            }
+
+            .voice-control {
+                width: 150px;
+                height: 150px;
+                bottom: 10px;
+            }
+        
+         }
+
+        @media (max-width: 431px) {
+
+            .voice-control {
+                width: 150px;
+                height: 150px;
+                bottom: 10px;
+            }
+
+            .controls{
+                margin-top: 15%;
+                right: 20px;
+            }
+
+        
+         }
+         
+         @media (max-width: 426px) {
+
+            .voice-control {
+                width: 150px;
+                height: 150px;
+                bottom: 10px;
+            }
+
+            .controls{
+                margin-top: 15%;
+                right: 20px;
+            }
+
+        
+         }
+
+
+        @media (max-width: 376px) {
+
+            
+            .participants-container {
+                margin-top: 150px;
+            }
+
+            .controls{
+                margin-top: 10%;
+                right: 20px;
+            }
+
+
+            .header {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+
+            }
+
+            .voice-control {
+                width: 50px;
+                height: 60px;
+                margin-top: 0px;
+                
+            }
+
+            .voice-control {
+                width: 25vw;
+                height: 25vw;
+                bottom: 3vh;
+            }
+
+            .voice-control svg {
+                width: 25vw;
+                height: 25vw;
+            }
+
+
+        }
+
+
+        @media (max-width: 345px) {
+
+        .controls{
+            margin-top: 12%;
+            position: absolute;
+            right: 10px;
+        }
+
+
+        .header {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+
+        }
+        .voice-control {
+            width: 25vw;
+            height: 25vw;
+            bottom: 7vh;
+        }
+
+        .voice-control svg {
+            width: 25vw;
+            height: 25vw;
+        }
+
+
+        }
+
+        @media (max-width: 321px) {
+        .controls{
+            margin-top: 15%;
+            position: absolute;
+            right: 5px;
+        }
+
+        .participant-card {
+                margin-top: 20px;
+            width: 250px;
+
+            }
+
+
+        .participant-card .card-inner {
+            background-color: #1F1F2E;
+            border-radius: 14px;
+            overflow: hidden;
+            width: 250px;
+            color: #FFF;
+            font-family: sans-serif;
+            }
+
+    }
+
+
+
+    </style>
+</head>
+    <body class="bg-image">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">E Walkie Talkie</div>
+            <div class="room-id">Room id : <span id="roomIdDisplay">{{ room_id }}</span></div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+
+            <button class="control-btn" id="copyBtn" aria-label="Share room">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                <!-- <path d="M4 12v-2a4 4 0 0 1 4-4h2" />
+                <path d="M16 12v-2a4 4 0 0 0-4-4H8" />
+                <path d="M12 16v6" />
+                <path d="M16 20l-4 4l-4-4" /> -->
+                <circle cx="18" cy="5" r="3" />
+                <circle cx="6" cy="12" r="3" />
+                <circle cx="18" cy="19" r="3" />
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                </svg>
+            </button>
+
+            <button class="control-btn" id="exit" aria-label="Exit room">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+            </button>
+
+        </div>
+
+
+    <!-- Participants -->
+    <div class="participants-container grid grid-cols-1 md:grid-cols-2 gap-6 px-6">
+
+        <!-- You -->
+    <div class="participant-card">
+        <div class="card-inner">
+        <div class="card-header">You</div>
+        <div class="card-content">
+            <div class="l1">
+            <div class="avatar">
+                <img src="{{ url_for('static', filename='img/pro.png') }}"  alt="Avatar">
+            </div>
+            <div class="name">You</div>
+            </div>
+            <div class="audio-meter">
+            <div class="audio-level" id="localAudioLevel" style="width: 70%;"></div>
+            </div>
+        </div>
+        </div>
+    </div>
+
+
+        <!-- Participants Panel -->
+
+        <div id="remoteAudioContainer" >
+
+    <!-- <div class="participant-card">
+        <div class="card-inner">
+        <div class="card-header" id="roomStatus">
+            <span>Participants</span>
+            <span id="participantCount">1/2</span></div>
+        <div class="card-content" id="remort-card-content">
+            <div class="l1">
+            <div class="avatar">
+                <img src="{{ url_for('static', filename='img/profile.svg') }}"  alt="Avatar">
+            </div>
+            <div class="name">${userId.slice(0, 4)}</div>
+            </div>
+            <div class="audio-meter">
+            <div class="audio-level" id="remoteAudioLevel" style="width: 70%;"></div>
+            </div>
+        </div>
+        </div>
+    </div> -->
+        </div>
+
+    </div>
+
+    <!-- Voice Control -->
+    <button class="voice-control" id="pushToTalkBtn" aria-label="Voice control">
+       <img src="{{ url_for('static', filename='img/mic.svg') }}" alt="Microphone Icon" class="mic-icon">
+    </button>
+    
+    
+    
+    <!-- Hidden Controls -->
+    <div id="creator-controls" class="hidden"></div>
+    <div id="participant-list" class="hidden"></div>
+    <!-- <div class="status-cnt"  class="hidden">
+        <div id="status">
+            <i class="fas fa-info-circle"></i>
+            <span>Connecting...</span>
+        </div>
+    </div> -->
+
+    <!-- <div id="localUser" class="hidden user-display">
+        <span class="user-id"></span>
+        <span class="badge">You</span>
+        <span class="badge creator">Creator</span>
+    </div> -->
+
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                document.getElementById('copyBtn').addEventListener('click', () => {
+                    const roomId = "{{ room_id }}";
+                    const url = `${window.location.origin}/call/${roomId}`;
+                    navigator.clipboard.writeText(url).then( async () => {
+                        const copyBtn = document.getElementById('copyBtn');
+                        const originalHtml = copyBtn.innerHTML;
+                        copyBtn.innerHTML = '<i class="fas fa-check"></i><span>Copied!</span>';
+                        setTimeout(() => {
+                            copyBtn.innerHTML = originalHtml;
+                        }, 2000);
+
+                        const shareData = {
+                            title: 'Join my Walkie Talkie Room',
+                            text: `Room ID: ${roomId}`,
+                            url: `${window.location.origin}/call/${roomId}`
+                            };
+
+                            try {
+                            if (navigator.share) {
+                                await navigator.share(shareData); // ✅ Correct usage
+                            } else {
+                                await navigator.clipboard.writeText(shareData.url);
+                                alert('Sharring not supported, Link copied to clipboard'); // Fallback
+                            }
+                            } catch (err) {
+                            console.error('Sharing not suppoted in this platfrom:', err);
+                            }
+
+
+
+                    });
+                });
+        
+                document.getElementById('roomIdDisplay').textContent = "{{ room_id }}";
+            });
+
+
+            document.getElementById('exit').addEventListener('click', () => {
+                window.location.href = '/';
+            });
+
+ const profileImgUrl = "{{ url_for('static', filename='img/pro-rem.png') }}";
+
+        </script>
+
+        <script src="/static/js/main.js"></script>
+
+    </body>
+</html>

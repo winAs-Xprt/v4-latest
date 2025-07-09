@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E Walkie Talkie</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Inter:wght@400;500&family=Orbitron:wght@600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --purple: #E63FFF;
+            --cyan: #22E2FF;
+            --dark-bg: #000000;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: var(--dark-bg);
+            background-image: url("{{ url_for('static', filename='img/bg.svg') }}");
+            background-position: center calc(100% - -150px);
+            background-repeat: no-repeat;
+            background-size: auto;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Background Glows */
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            width: 50vw;
+            height: 50vh;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: -1;
+        }
+        
+        body::before {
+            background: rgba(60, 60, 80, 0.6);
+            left: -25vw;
+            top: -25vh;
+        }
+        
+        body::after {
+            background: rgba(100, 40, 60, 0.5);
+            right: -25vw;
+            top: -25vh;
+        }
+        
+        /* Wireframe Mesh */
+        .wireframe {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 35vh;
+            z-index: -1;
+        }
+        
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        /* Header */
+        .header {
+            align-self: flex-start;
+            margin-bottom: 120px;
+        }
+        
+        .logo {
+            font-family: 'Audiowide', cursive;
+            font-weight: 400;
+            font-size: 40px;
+            line-height: 100%;
+            color: #FFFFFF;
+        }
+        
+        /* Title */
+        .title {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 600;
+            font-size: 48px;
+            line-height: 56px;
+            margin-bottom: 48px;
+            background: linear-gradient(90deg, var(--purple), var(--cyan));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+        
+        /* Input Field */
+        .input-container {
+            position: relative;
+            width: 60%;
+            margin-bottom: 32px;
+        }
+        
+        .input-field {
+            width: 100%;
+            height: 56px;
+            background: transparent;
+            border: none;
+            border-radius: 28px;
+            padding: 0 24px;
+            font-size: 18px;
+            line-height: 22px;
+            color: white;
+            outline: none;
+            position: relative;
+            z-index: 2;
+        }
+         
+        .input-field::placeholder {
+            color: #CCCCCC;
+            font-weight: 500;
+            opacity: 0.6    ; /* Ensure placeholder is visible */
+            text-align: center;
+        }
+        
+        .input-field:focus {
+            box-shadow: 0 0 8px rgba(230, 63, 255, 0.4);
+        }
+        
+        /* Gradient Border */
+        .input-border {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 28px;
+            pointer-events: none;
+            border: 2px solid transparent;
+            background: linear-gradient(var(--dark-bg), var(--dark-bg)) padding-box,
+                        linear-gradient(90deg, var(--purple), var(--cyan)) border-box;
+            z-index: 1;
+        }
+        
+        /* Buttons */
+        .buttons {
+            display: flex;
+            gap: 24px;
+            width: 60%;
+        }
+        
+        .btn {
+            width: 200px;
+            height: 56px;
+            border-radius: 28px;
+            font-weight: 500;
+            font-size: 18px;
+            line-height: 22px;
+            color: #FFFFFF;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-create {
+            background: linear-gradient(90deg, var(--purple), var(--cyan));
+               border: 2px solid white; /* 👈 White border */
+                width: 50%;
+
+        }
+        
+        .btn-create:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(230, 63, 255, 0.3);
+        }
+        
+        .btn-create:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+        
+        .btn-join {
+            background: black;
+               width: 50%;
+
+            border: 2px solid #FFFFFF;
+        }
+        
+        .btn-join:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn-join:active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .container {
+                padding: 16px;
+            }
+            
+            .title {
+                font-size: 36px;
+                line-height: 42px;
+            }
+            
+
+        }
+        
+        @media (max-width: 600px) {
+
+            body {
+                background-image: url("{{ url_for('static', filename='img/ph-bg.svg') }}");         /* Remove background image */
+                background-color: var(--dark-bg); /* Optional: ensure dark background still shows */
+                background-size: cover;   /* fills entire area, may crop */
+                background-size: contain;            
+                background-position: center bottom;  
+            }
+            
+
+            .header {
+                margin-top: 50px;
+            }
+            .input-container {
+                width: calc(100% - 32px);
+            }
+            
+            .buttons {
+                flex-direction: column;
+                width: calc(100% - 32px);
+                gap: 16px;
+            }
+            
+            .buttons{
+                flex-direction: row;
+            }
+
+            .btn {
+                width: 50%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+
+    <div class="container">
+        <div class="header">
+            <div class="logo">E Walkie Talkie</div>
+        </div>
+        
+        <h1 class="title">Create room or join room</h1>
+        
+        <div class="input-container">
+            <input type="text" id="roomId" class="input-field" placeholder="Enter Room ID">
+            <div class="input-border"></div>
+        </div>
+        
+        <div class="buttons">
+            <button id="createBtn" class="btn btn-create">Create Room</button>
+            <button id="joinBtn" class="btn btn-join">Join Room</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('createBtn').addEventListener('click', () => {
+            const roomId = document.getElementById('roomId').value.trim().toUpperCase();
+            if (roomId) {
+                window.location.href = `/call/${roomId}`;
+            } else {
+                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                let result = '';
+                for (let i = 0; i < 6; i++) {
+                    result += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                document.getElementById('roomId').value = result;
+                window.location.href = `/call/${result}`;
+            }
+        });
+
+        document.getElementById('joinBtn').addEventListener('click', () => {
+            const roomId = document.getElementById('roomId').value.trim().toUpperCase();
+            if (roomId) {
+                window.location.href = `/call/${roomId}`;
+            } else {
+                alert('Please enter a room ID to join');
+            }
+        });
+    </script>
+</body>
+</html>
