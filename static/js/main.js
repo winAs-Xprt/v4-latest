@@ -1,5 +1,5 @@
 // const socket = io();
-const socket = io("https://v-call-nb7m.onrender.com", {
+const socket = io("https://walkie.iniserve.com/", {
   transports: ["polling", "websocket"], // allow fallback
   withCredentials: true, // only if your server uses credentials
   path: "/socket.io", // optional unless custom path
